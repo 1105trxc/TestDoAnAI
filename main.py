@@ -879,10 +879,7 @@ def areShipsPlacedCorrectly(shiplist, grid):
            ship.rect.bottom > grid[-1][0][1] + CELLSIZE:
             return False
     return True
-<<<<<<< HEAD
 
-=======
->>>>>>> 1c965bf0473abb116b97012fb36bf35123a2c539
 RUNGAME = True
 while RUNGAME:
     for event in pygame.event.get():
@@ -910,11 +907,7 @@ while RUNGAME:
                                 status = deploymentPhase(DEPLOYMENT)
                                 DEPLOYMENT = status
                             else:
-<<<<<<< HEAD
                                 MESSAGE_BOXES.append(MessageBox("Please set up ship's position!", duration=2000))
-=======
-                                MESSAGE_BOXES.append(MessageBox("Please, set up ship's position", duration=2000))
->>>>>>> 1c965bf0473abb116b97012fb36bf35123a2c539
                         elif button.name == 'Redeploy' and button.active == True:
                             status = deploymentPhase(DEPLOYMENT)
                             DEPLOYMENT = status
