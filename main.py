@@ -244,6 +244,12 @@ class Button:
                 pass
             elif self.name == 'Redeploy':
                 self.restartTheGame()
+            elif self.name == 'Back to Main':
+                global GAMESTATE, DEPLOYMENT, TOKENS, computer  # Truy cập các biến toàn cục
+                GAMESTATE = 'Main Menu'  # Chuyển về Main Menu
+                DEPLOYMENT = True  # Đặt lại giai đoạn triển khai
+                TOKENS.clear()  # Xóa các token trên lưới
+                self.restartTheGame()
 
     def randomizeShipPositions(self, shiplist, gameGrid):
         if DEPLOYMENT == True:
@@ -326,7 +332,7 @@ class EasyComputer:
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
         COMPTURNTIMER = pygame.time.get_ticks()
-        if COMPTURNTIMER - TURNTIMER >= 3000:
+        if COMPTURNTIMER - TURNTIMER >= 1000:
             validChoice = False
             while not validChoice:
                 rowX = random.randint(0, 9)
@@ -360,7 +366,7 @@ class MediumComputer(EasyComputer):
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
         COMPTURNTIMER = pygame.time.get_ticks()
-        if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 3 giây giữa các lượt
+        if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 3 giây giữa các lượt
             # Thuật toán Greedy: Ưu tiên tấn công gần các ô đã trúng
             if self.hits:
                 # Tìm các ô kề với ô đã trúng
@@ -421,7 +427,7 @@ class HardComputer(EasyComputer):
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
         if len(self.moves) == 0:
             COMPTURNTIMER = pygame.time.get_ticks()
-            if COMPTURNTIMER - TURNTIMER >= 3000:
+            if COMPTURNTIMER - TURNTIMER >= 1000:
                 validChoice = False
                 while not validChoice:
                     rowX = random.randint(0, 9)
@@ -740,7 +746,7 @@ def deploymentScreen(window):
     displayShipNames(window)
 
     for button in BUTTONS:
-        if button.name in ['Randomize', 'Reset', 'Deploy', 'Quit', 'Redeploy']:
+        if button.name in ['Randomize', 'Reset', 'Deploy', 'Quit', 'Redeploy', 'Back to Main']:
             button.active = True
             button.draw(window)
         else:
@@ -841,7 +847,8 @@ BUTTONS = [
     Button(BUTTONIMAGE, (150, 50), (375, 900), 'Deploy'),
     Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2 - 150), 'Easy Computer'),
     Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2), 'Medium Computer'),  # Thêm nút Medium Computer
-    Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2 + 150), 'Hard Computer')
+    Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2 + 150), 'Hard Computer'),
+    Button(BUTTONIMAGE, (150, 50), (550, 900), 'Back to Main')
 ]
 REDTOKEN = loadImage('assets/images/tokens/redtoken.png', (CELLSIZE, CELLSIZE))
 GREENTOKEN = loadImage('assets/images/tokens/greentoken.png', (CELLSIZE, CELLSIZE))
@@ -864,6 +871,15 @@ MISSSOUND.set_volume(0.05)
 player1 = Player()
 computer = EasyComputer()
 
+def areShipsPlacedCorrectly(shiplist, grid):
+    for ship in shiplist:
+        if ship.rect.left < grid[0][0][0] or \
+           ship.rect.right > grid[0][-1][0] + CELLSIZE or \
+           ship.rect.top < grid[0][0][1] or \
+           ship.rect.bottom > grid[-1][0][1] + CELLSIZE:
+            return False
+    return True
+
 RUNGAME = True
 while RUNGAME:
     for event in pygame.event.get():
@@ -883,9 +899,15 @@ while RUNGAME:
                             TURNTIMER = pygame.time.get_ticks()
                 for button in BUTTONS:
                     if button.rect.collidepoint(pygame.mouse.get_pos()):
+                        # if button.name == 'Deploy' and button.active == True:
+                        #     status = deploymentPhase(DEPLOYMENT)
+                        #     DEPLOYMENT = status
                         if button.name == 'Deploy' and button.active == True:
-                            status = deploymentPhase(DEPLOYMENT)
-                            DEPLOYMENT = status
+                            if areShipsPlacedCorrectly(pFleet, pGameGrid):
+                                status = deploymentPhase(DEPLOYMENT)
+                                DEPLOYMENT = status
+                            else:
+                                MESSAGE_BOXES.append(MessageBox("Please set up ship's position!", duration=2000))
                         elif button.name == 'Redeploy' and button.active == True:
                             status = deploymentPhase(DEPLOYMENT)
                             DEPLOYMENT = status
