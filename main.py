@@ -270,10 +270,6 @@ class Button:
         self.randomizeShipPositions(cFleet, cGameGrid)
         for ship in cFleet:
             ship.is_sunk = False
-        # Đặt lại lưới logic
-        global pGameLogic, cGameLogic
-        pGameLogic = createGameLogic(ROWS, COLS)  # Tạo lại lưới logic cho người chơi
-        cGameLogic = createGameLogic(ROWS, COLS)  # Tạo lại lưới logic cho máy
         updateGameLogic(cGameGrid, cFleet, cGameLogic)
         updateGameLogic(pGameGrid, pFleet, pGameLogic)
 
@@ -586,7 +582,7 @@ def createGameLogic(rows, cols):
         gamelogic.append(rowX)
     return gamelogic
 
-'''def updateGameLogic(coordGrid, shiplist, gamelogic):
+def updateGameLogic(coordGrid, shiplist, gamelogic):
     for i, rowX in enumerate(coordGrid):
         for j, colX in enumerate(rowX):
             if gamelogic[i][j] == 'T' or gamelogic[i][j] == 'X':
@@ -595,16 +591,7 @@ def createGameLogic(rows, cols):
                 gamelogic[i][j] = ' '
                 for ship in shiplist:
                     if pygame.rect.Rect(colX[0], colX[1], CELLSIZE, CELLSIZE).colliderect(ship.rect):
-                        gamelogic[i][j] = 'O' '''
-
-def updateGameLogic(coordGrid, shiplist, gamelogic):
-    # Đặt lại toàn bộ lưới logic
-    for i, rowX in enumerate(coordGrid):
-        for j, colX in enumerate(rowX):
-            gamelogic[i][j] = ' '  # Đặt lại tất cả ô thành trống
-            for ship in shiplist:
-                if pygame.rect.Rect(colX[0], colX[1], CELLSIZE, CELLSIZE).colliderect(ship.rect):
-                    gamelogic[i][j] = 'O'  # Đặt ô thành 'O' nếu có tàu
+                        gamelogic[i][j] = 'O'
 
 def showGridOnScreen(window, cellsize, playerGrid, computerGrid):
     gamegrids = [playerGrid, computerGrid]
@@ -784,6 +771,7 @@ def endScreen(window):
             button.active = False
 
 def updateGameScreen(window, GAMESTATE):
+    global gameOverMessageShown
     if GAMESTATE == 'Main Menu':
         mainMenuScreen(window)
     elif GAMESTATE == 'Deployment':
@@ -792,11 +780,18 @@ def updateGameScreen(window, GAMESTATE):
         endScreen(window)
         player1Wins = checkForWinners(cGameLogic)
         computerWins = checkForWinners(pGameLogic)
-        if player1Wins:
-            MESSAGE_BOXES.append(MessageBox("You Win!", duration=2000))
-        elif computerWins:
-            MESSAGE_BOXES.append(MessageBox("You Lose!", duration=2000))
-
+        if not gameOverMessageShown: # Chỉ thực hiện nếu thông báo chưa được hiển thị
+            player1Wins = checkForWinners(cGameLogic)
+            computerWins = checkForWinners(pGameLogic)
+            if player1Wins:
+                # Đặt duration thành 3000 (3 giây)
+                MESSAGE_BOXES.append(MessageBox("You Win!", duration=3000))
+                gameOverMessageShown = True # Đặt cờ thành True sau khi thêm
+            elif computerWins:
+                # Đặt duration thành 3000 (3 giây)
+                MESSAGE_BOXES.append(MessageBox("You Lose!", duration=3000))
+                gameOverMessageShown = True # Đặt cờ thành True sau khi thêm
+        
     i = 0
     while i < len(MESSAGE_BOXES):
         if not MESSAGE_BOXES[i].draw(window):
@@ -815,6 +810,7 @@ CELLSIZE = 50
 DEPLOYMENT = True
 TURNTIMER = pygame.time.get_ticks()
 GAMESTATE = 'Main Menu'
+gameOverMessageShown = False
 
 GAMESCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 pygame.display.set_caption('Battle Ship')
