@@ -300,7 +300,7 @@ class Player:
                     if posX >= colX[0] and posX < colX[0] + 50 and posY >= colX[1] and posY <= colX[1] + 50:
                         if logicgrid[i][j] != ' ':
                             if logicgrid[i][j] == 'O':
-                                TOKENS.append(Tokens(REDTOKEN, grid[i][j], 'Hit', None, None, None))
+                                TOKENS.append(Tokens(REDTOKEN, grid[i][j], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
                                 logicgrid[i][j] = 'T'
                                 SHOTSOUND.play()
                                 HITSOUND.play()
@@ -352,6 +352,67 @@ class EasyComputer:
         if self.turn:
             window.blit(self.status, (cGameGrid[0][0][0] - CELLSIZE, cGameGrid[-1][-1][1] + CELLSIZE))
 
+class MediumComputer(EasyComputer):
+    def __init__(self):
+        super().__init__()
+        self.name = 'Medium Computer'
+        self.hits = []  # Danh sách các ô đã trúng
+
+    def makeAttack(self, gamelogic, grid, enemy_fleet, window):
+        COMPTURNTIMER = pygame.time.get_ticks()
+        if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 3 giây giữa các lượt
+            # Thuật toán Greedy: Ưu tiên tấn công gần các ô đã trúng
+            if self.hits:
+                # Tìm các ô kề với ô đã trúng
+                for hit_row, hit_col in self.hits:
+                    adjacent_cells = [
+                        (hit_row - 1, hit_col), (hit_row + 1, hit_col),  # Bắc, Nam
+                        (hit_row, hit_col - 1), (hit_row, hit_col + 1)   # Tây, Đông
+                    ]
+                    valid_adjacent = [
+                        (r, c) for r, c in adjacent_cells
+                        if 0 <= r < 10 and 0 <= c < 10 and gamelogic[r][c] in [' ', 'O']
+                    ]
+                    if valid_adjacent:
+                        # Chọn ngẫu nhiên một ô kề hợp lệ
+                        rowX, colX = random.choice(valid_adjacent)
+                        if gamelogic[rowX][colX] == 'O':
+                            TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
+                            gamelogic[rowX][colX] = 'T'
+                            SHOTSOUND.play()
+                            HITSOUND.play()
+                            self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
+                            checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
+                        else:
+                            gamelogic[rowX][colX] = 'X'
+                            TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
+                            SHOTSOUND.play()
+                            MISSSOUND.play()
+                        self.turn = False
+                        return self.turn
+
+            # Nếu không có ô trúng hoặc không tìm thấy ô kề, chọn ngẫu nhiên
+            validChoice = False
+            while not validChoice:
+                rowX = random.randint(0, 9)
+                colX = random.randint(0, 9)
+                if gamelogic[rowX][colX] in [' ', 'O']:
+                    validChoice = True
+            if gamelogic[rowX][colX] == 'O':
+                TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
+                gamelogic[rowX][colX] = 'T'
+                SHOTSOUND.play()
+                HITSOUND.play()
+                self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
+                checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
+            else:
+                gamelogic[rowX][colX] = 'X'
+                TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
+                SHOTSOUND.play()
+                MISSSOUND.play()
+            self.turn = False
+        return self.turn
+    
 class HardComputer(EasyComputer):
     def __init__(self):
         super().__init__()
@@ -653,7 +714,7 @@ def mainMenuScreen(window):
     window.fill((0, 0, 0))
     window.blit(MAINMENUIMAGE, (0, 0))
     for button in BUTTONS:
-        if button.name in ['Easy Computer', 'Hard Computer']:
+        if button.name in ['Easy Computer', 'Medium Computer', 'Hard Computer']:
             button.active = True
             button.draw(window)
         else:
@@ -697,7 +758,7 @@ def endScreen(window):
     window.fill((0, 0, 0))
     window.blit(ENDSCREENIMAGE, (0, 0))
     for button in BUTTONS:
-        if button.name in ['Easy Computer', 'Hard Computer', 'Quit']:
+        if button.name in ['Easy Computer', 'Medium Computer', 'Hard Computer', 'Quit']:
             button.active = True
             button.draw(window)
         else:
@@ -779,6 +840,7 @@ BUTTONS = [
     Button(BUTTONIMAGE, (150, 50), (200, 900), 'Reset'),
     Button(BUTTONIMAGE, (150, 50), (375, 900), 'Deploy'),
     Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2 - 150), 'Easy Computer'),
+    Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2), 'Medium Computer'),  # Thêm nút Medium Computer
     Button(BUTTONIMAGE1, (250, 100), (900, SCREENHEIGHT // 2 + 150), 'Hard Computer')
 ]
 REDTOKEN = loadImage('assets/images/tokens/redtoken.png', (CELLSIZE, CELLSIZE))
@@ -829,9 +891,11 @@ while RUNGAME:
                             DEPLOYMENT = status
                         elif button.name == 'Quit' and button.active == True:
                             RUNGAME = False
-                        elif (button.name == 'Easy Computer' or button.name == 'Hard Computer') and button.active == True:
+                        elif (button.name in ['Easy Computer', 'Medium Computer', 'Hard Computer']) and button.active == True:
                             if button.name == 'Easy Computer':
                                 computer = EasyComputer()
+                            elif button.name == 'Medium Computer':
+                                computer = MediumComputer()  # Khởi tạo MediumComputer
                             elif button.name == 'Hard Computer':
                                 computer = HardComputer()
                             if GAMESTATE == 'Game Over':
