@@ -332,6 +332,7 @@ class EasyComputer:
         return message
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
+        global TURNTIMER  # Cập nhật TURNTIMER toàn cục
         COMPTURNTIMER = pygame.time.get_ticks()
         if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 1 giây giữa các lần bắn
             validChoice = False
@@ -346,13 +347,15 @@ class EasyComputer:
                 SHOTSOUND.play()
                 HITSOUND.play()
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                # Không đặt self.turn = False ở đây, giữ lượt cho AI
+                # Giữ lượt khi trúng, nhưng cập nhật TURNTIMER để có khoảng dừng
+                TURNTIMER = pygame.time.get_ticks()
             else:
                 gamelogic[rowX][colX] = 'X'
                 TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                 SHOTSOUND.play()
                 MISSSOUND.play()
-                self.turn = False  # Chỉ chuyển lượt khi bắn trượt
+                self.turn = False  # Chuyển lượt khi trượt
+                TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trượt
         return self.turn
 
     def draw(self, window):
@@ -366,6 +369,7 @@ class MediumComputer(EasyComputer):
         self.hits = []  # Danh sách các ô đã trúng
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
+        global TURNTIMER  # Cập nhật TURNTIMER toàn cục
         COMPTURNTIMER = pygame.time.get_ticks()
         if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 1 giây giữa các lần bắn
             # Thuật toán Greedy: Ưu tiên tấn công gần các ô đã trúng
@@ -389,13 +393,14 @@ class MediumComputer(EasyComputer):
                         HITSOUND.play()
                         self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
                         checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                        # Không đặt self.turn = False ở đây, giữ lượt cho AI
+                        TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trúng
                     else:
                         gamelogic[rowX][colX] = 'X'
                         TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                         SHOTSOUND.play()
                         MISSSOUND.play()
-                        self.turn = False  # Chỉ chuyển lượt khi bắn trượt
+                        self.turn = False  # Chuyển lượt khi trượt
+                        TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trượt
                     return self.turn
 
             # Nếu không có ô trúng hoặc không tìm thấy ô kề, chọn ngẫu nhiên
@@ -412,13 +417,14 @@ class MediumComputer(EasyComputer):
                 HITSOUND.play()
                 self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                # Không đặt self.turn = False ở đây, giữ lượt cho AI
+                TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trúng
             else:
                 gamelogic[rowX][colX] = 'X'
                 TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                 SHOTSOUND.play()
                 MISSSOUND.play()
-                self.turn = False  # Chỉ chuyển lượt khi bắn trượt
+                self.turn = False  # Chuyển lượt khi trượt
+                TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trượt
         return self.turn
     
 class HardComputer(EasyComputer):
@@ -428,9 +434,10 @@ class HardComputer(EasyComputer):
         self.name = 'Hard Computer'
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
+        global TURNTIMER  # Cập nhật TURNTIMER toàn cục
         COMPTURNTIMER = pygame.time.get_ticks()
         if len(self.moves) == 0:  # Nếu chưa có danh sách ô để bắn
-            if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 1 giây
+            if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 1 giây
                 validChoice = False
                 while not validChoice:
                     rowX = random.randint(0, 9)
@@ -444,15 +451,16 @@ class HardComputer(EasyComputer):
                     HITSOUND.play()
                     self.generateMoves((rowX, colX), gamelogic)
                     checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                    # Không đặt self.turn = False, giữ lượt khi trúng
+                    TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trúng
                 else:
                     gamelogic[rowX][colX] = 'X'
                     TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                     SHOTSOUND.play()
                     MISSSOUND.play()
                     self.turn = False  # Chuyển lượt khi trượt
+                    TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trượt
         elif len(self.moves) > 0:  # Nếu có danh sách ô để bắn
-            if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 2 giây
+            if COMPTURNTIMER - TURNTIMER >= 2000:  # Đợi 2 giây
                 rowX, colX = self.moves[0]
                 TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
                 gamelogic[rowX][colX] = 'T'
@@ -460,7 +468,7 @@ class HardComputer(EasyComputer):
                 HITSOUND.play()
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
                 self.moves.remove((rowX, colX))
-                # Không đặt self.turn = False, giữ lượt khi trúng
+                TURNTIMER = pygame.time.get_ticks()  # Cập nhật TURNTIMER khi trúng
         return self.turn
 
     def generateMoves(self, coords, grid, lstDir=None):
