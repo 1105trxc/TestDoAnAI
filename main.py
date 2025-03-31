@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -74,7 +75,7 @@ class Ship:
         self.hImageRect = self.hImage.get_rect()
         self.hImageRect.topleft = pos
         self.image = self.vImage
-        self.rect = self.vImageRect 
+        self.rect = self.vImageRect
         self.rotation = False
         self.active = False
         self.is_sunk = False
@@ -486,9 +487,8 @@ def checkAndNotifyDestroyedShip(grid, logicGrid, shiplist, window):
         if ship_sunk and ship_cells and not ship.is_sunk:
             ship.is_sunk = True
             destroyed_ships.append(ship)
-            # Sử dụng hình ảnh ngang của tàu (hImage) nếu tàu đang nằm ngang, nếu không thì dùng vImage
-            ship_image = ship.hImage if ship.rotation else ship.vImage
-            MESSAGE_BOXES.append(MessageBox(f"{ship.name} destroyed!", ship_image))
+            # Luôn sử dụng ship.hImage để hiển thị tàu nằm ngang
+            MESSAGE_BOXES.append(MessageBox(f"{ship.name} destroyed!", ship.hImage))
     
     return destroyed_ships
 
@@ -566,6 +566,7 @@ def loadSpriteSheetImages(spriteSheet, rows, cols, newSize, size):
     image.set_colorkey((0, 0, 0))
     return image
 
+### thuoc tinh cua tau
 def createFleet():
     fleet = []
     for name in FLEET.keys():
@@ -712,9 +713,9 @@ def updateGameScreen(window, GAMESTATE):
         player1Wins = checkForWinners(cGameLogic)
         computerWins = checkForWinners(pGameLogic)
         if player1Wins:
-            MESSAGE_BOXES.append(MessageBox("You Win!", duration=5000))
+            MESSAGE_BOXES.append(MessageBox("You Win!", duration=2000))
         elif computerWins:
-            MESSAGE_BOXES.append(MessageBox("You Lose!", duration=5000))
+            MESSAGE_BOXES.append(MessageBox("You Lose!", duration=2000))
 
     i = 0
     while i < len(MESSAGE_BOXES):
@@ -766,8 +767,8 @@ for ship in cFleet:
 
 printGameLogic()
 
-MAINMENUIMAGE = loadImage('assets/images/background/Battleship.jpg', (SCREENWIDTH // 3 * 2, SCREENHEIGHT))
-ENDSCREENIMAGE = loadImage('assets/images/background/Carrier.jpg', (SCREENWIDTH, SCREENHEIGHT))
+MAINMENUIMAGE = loadImage('assets/images/background/bg.jpg', (SCREENWIDTH, SCREENHEIGHT))
+ENDSCREENIMAGE = loadImage('assets/images/background/bg1.jpg', (SCREENWIDTH, SCREENHEIGHT))
 BACKGROUND = loadImage('assets/images/background/gamebg.png', (SCREENWIDTH, SCREENHEIGHT))
 PGAMEGRIDIMG = loadImage('assets/images/grids/player_grid.png', ((ROWS + 1) * CELLSIZE, (COLS + 1) * CELLSIZE))
 CGAMEGRIDIMG = loadImage('assets/images/grids/comp_grid.png', ((ROWS + 1) * CELLSIZE, (COLS + 1) * CELLSIZE))
