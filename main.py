@@ -310,14 +310,15 @@ class Player:
                                 logicgrid[i][j] = 'T'
                                 SHOTSOUND.play()
                                 HITSOUND.play()
-                                self.turn = False
+                                # Không đặt self.turn = False ở đây, giữ lượt cho người chơi
                                 checkAndNotifyDestroyedShip(grid, logicgrid, enemy_fleet, window)
+                            # Nếu đã bắn trúng trước đó (T) thì không làm gì
                         else:
                             logicgrid[i][j] = 'X'
                             SHOTSOUND.play()
                             MISSSOUND.play()
                             TOKENS.append(Tokens(GREENTOKEN, grid[i][j], 'Miss', None, None, None))
-                            self.turn = False
+                            self.turn = False  # Chỉ chuyển lượt khi bắn trượt
 
 class EasyComputer:
     def __init__(self):
@@ -332,7 +333,7 @@ class EasyComputer:
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
         COMPTURNTIMER = pygame.time.get_ticks()
-        if COMPTURNTIMER - TURNTIMER >= 1000:
+        if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 1 giây giữa các lần bắn
             validChoice = False
             while not validChoice:
                 rowX = random.randint(0, 9)
@@ -345,13 +346,13 @@ class EasyComputer:
                 SHOTSOUND.play()
                 HITSOUND.play()
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                self.turn = False
+                # Không đặt self.turn = False ở đây, giữ lượt cho AI
             else:
                 gamelogic[rowX][colX] = 'X'
                 TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                 SHOTSOUND.play()
                 MISSSOUND.play()
-                self.turn = False
+                self.turn = False  # Chỉ chuyển lượt khi bắn trượt
         return self.turn
 
     def draw(self, window):
@@ -366,36 +367,36 @@ class MediumComputer(EasyComputer):
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
         COMPTURNTIMER = pygame.time.get_ticks()
-        if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 3 giây giữa các lượt
+        if COMPTURNTIMER - TURNTIMER >= 1000:  # Đợi 1 giây giữa các lần bắn
             # Thuật toán Greedy: Ưu tiên tấn công gần các ô đã trúng
             if self.hits:
-                # Tìm các ô kề với ô đã trúng
+                adjacent_cells = []
                 for hit_row, hit_col in self.hits:
-                    adjacent_cells = [
+                    adjacent_cells.extend([
                         (hit_row - 1, hit_col), (hit_row + 1, hit_col),  # Bắc, Nam
                         (hit_row, hit_col - 1), (hit_row, hit_col + 1)   # Tây, Đông
-                    ]
-                    valid_adjacent = [
-                        (r, c) for r, c in adjacent_cells
-                        if 0 <= r < 10 and 0 <= c < 10 and gamelogic[r][c] in [' ', 'O']
-                    ]
-                    if valid_adjacent:
-                        # Chọn ngẫu nhiên một ô kề hợp lệ
-                        rowX, colX = random.choice(valid_adjacent)
-                        if gamelogic[rowX][colX] == 'O':
-                            TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
-                            gamelogic[rowX][colX] = 'T'
-                            SHOTSOUND.play()
-                            HITSOUND.play()
-                            self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
-                            checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                        else:
-                            gamelogic[rowX][colX] = 'X'
-                            TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
-                            SHOTSOUND.play()
-                            MISSSOUND.play()
-                        self.turn = False
-                        return self.turn
+                    ])
+                valid_adjacent = [
+                    (r, c) for r, c in adjacent_cells
+                    if 0 <= r < 10 and 0 <= c < 10 and gamelogic[r][c] in [' ', 'O']
+                ]
+                if valid_adjacent:
+                    rowX, colX = random.choice(valid_adjacent)
+                    if gamelogic[rowX][colX] == 'O':
+                        TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
+                        gamelogic[rowX][colX] = 'T'
+                        SHOTSOUND.play()
+                        HITSOUND.play()
+                        self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
+                        checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
+                        # Không đặt self.turn = False ở đây, giữ lượt cho AI
+                    else:
+                        gamelogic[rowX][colX] = 'X'
+                        TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
+                        SHOTSOUND.play()
+                        MISSSOUND.play()
+                        self.turn = False  # Chỉ chuyển lượt khi bắn trượt
+                    return self.turn
 
             # Nếu không có ô trúng hoặc không tìm thấy ô kề, chọn ngẫu nhiên
             validChoice = False
@@ -411,54 +412,55 @@ class MediumComputer(EasyComputer):
                 HITSOUND.play()
                 self.hits.append((rowX, colX))  # Thêm ô trúng vào danh sách
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
+                # Không đặt self.turn = False ở đây, giữ lượt cho AI
             else:
                 gamelogic[rowX][colX] = 'X'
                 TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                 SHOTSOUND.play()
                 MISSSOUND.play()
-            self.turn = False
+                self.turn = False  # Chỉ chuyển lượt khi bắn trượt
         return self.turn
     
 class HardComputer(EasyComputer):
     def __init__(self):
         super().__init__()
         self.moves = []
+        self.name = 'Hard Computer'
 
     def makeAttack(self, gamelogic, grid, enemy_fleet, window):
-        if len(self.moves) == 0:
-            COMPTURNTIMER = pygame.time.get_ticks()
-            if COMPTURNTIMER - TURNTIMER >= 1000:
+        COMPTURNTIMER = pygame.time.get_ticks()
+        if len(self.moves) == 0:  # Nếu chưa có danh sách ô để bắn
+            if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 1 giây
                 validChoice = False
                 while not validChoice:
                     rowX = random.randint(0, 9)
-                    rowY = random.randint(0, 9)
-                    if gamelogic[rowX][rowY] == ' ' or gamelogic[rowX][rowY] == 'O':
+                    colX = random.randint(0, 9)
+                    if gamelogic[rowX][colX] == ' ' or gamelogic[rowX][colX] == 'O':
                         validChoice = True
-                if gamelogic[rowX][rowY] == 'O':
-                    TOKENS.append(Tokens(REDTOKEN, grid[rowX][rowY], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
-                    gamelogic[rowX][rowY] = 'T'
+                if gamelogic[rowX][colX] == 'O':
+                    TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
+                    gamelogic[rowX][colX] = 'T'
                     SHOTSOUND.play()
                     HITSOUND.play()
-                    self.generateMoves((rowX, rowY), gamelogic)
+                    self.generateMoves((rowX, colX), gamelogic)
                     checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                    self.turn = False
+                    # Không đặt self.turn = False, giữ lượt khi trúng
                 else:
-                    gamelogic[rowX][rowY] = 'X'
-                    TOKENS.append(Tokens(BLUETOKEN, grid[rowX][rowY], 'Miss', None, None, None))
+                    gamelogic[rowX][colX] = 'X'
+                    TOKENS.append(Tokens(BLUETOKEN, grid[rowX][colX], 'Miss', None, None, None))
                     SHOTSOUND.play()
                     MISSSOUND.play()
-                    self.turn = False
-        elif len(self.moves) > 0:
-            COMPTURNTIMER = pygame.time.get_ticks()
-            if COMPTURNTIMER - TURNTIMER >= 2000:
-                rowX, rowY = self.moves[0]
-                TOKENS.append(Tokens(REDTOKEN, grid[rowX][rowY], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
-                gamelogic[rowX][rowY] = 'T'
+                    self.turn = False  # Chuyển lượt khi trượt
+        elif len(self.moves) > 0:  # Nếu có danh sách ô để bắn
+            if COMPTURNTIMER - TURNTIMER >= 3000:  # Đợi 2 giây
+                rowX, colX = self.moves[0]
+                TOKENS.append(Tokens(REDTOKEN, grid[rowX][colX], 'Hit', FIRETOKENIMAGELIST, EXPLOSIONIMAGELIST, None))
+                gamelogic[rowX][colX] = 'T'
                 SHOTSOUND.play()
                 HITSOUND.play()
                 checkAndNotifyDestroyedShip(grid, gamelogic, enemy_fleet, window)
-                self.moves.remove((rowX, rowY))
-                self.turn = False
+                self.moves.remove((rowX, colX))
+                # Không đặt self.turn = False, giữ lượt khi trúng
         return self.turn
 
     def generateMoves(self, coords, grid, lstDir=None):
@@ -693,6 +695,7 @@ def takeTurns(p1, p2):
         p2.turn = True
         if not p2.makeAttack(pGameLogic, pGameGrid, pFleet, GAMESCREEN):
             p1.turn = True
+
 
 def checkForWinners(grid):
     validGame = True
