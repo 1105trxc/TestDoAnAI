@@ -74,7 +74,7 @@ class Ship:
         self.hImageRect = self.hImage.get_rect()
         self.hImageRect.topleft = pos
         self.image = self.vImage
-        self.rect = self.vImageRect
+        self.rect = self.vImageRect 
         self.rotation = False
         self.active = False
         self.is_sunk = False
