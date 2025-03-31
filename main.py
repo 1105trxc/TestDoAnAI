@@ -864,6 +864,14 @@ MISSSOUND.set_volume(0.05)
 player1 = Player()
 computer = EasyComputer()
 
+def areShipsPlacedCorrectly(shiplist, grid):
+    for ship in shiplist:
+        if ship.rect.left < grid[0][0][0] or \
+           ship.rect.right > grid[0][-1][0] + CELLSIZE or \
+           ship.rect.top < grid[0][0][1] or \
+           ship.rect.bottom > grid[-1][0][1] + CELLSIZE:
+            return False
+    return True
 RUNGAME = True
 while RUNGAME:
     for event in pygame.event.get():
@@ -883,9 +891,15 @@ while RUNGAME:
                             TURNTIMER = pygame.time.get_ticks()
                 for button in BUTTONS:
                     if button.rect.collidepoint(pygame.mouse.get_pos()):
+                        # if button.name == 'Deploy' and button.active == True:
+                        #     status = deploymentPhase(DEPLOYMENT)
+                        #     DEPLOYMENT = status
                         if button.name == 'Deploy' and button.active == True:
-                            status = deploymentPhase(DEPLOYMENT)
-                            DEPLOYMENT = status
+                            if areShipsPlacedCorrectly(pFleet, pGameGrid):
+                                status = deploymentPhase(DEPLOYMENT)
+                                DEPLOYMENT = status
+                            else:
+                                MESSAGE_BOXES.append(MessageBox("Please, set up ship's position", duration=2000))
                         elif button.name == 'Redeploy' and button.active == True:
                             status = deploymentPhase(DEPLOYMENT)
                             DEPLOYMENT = status
