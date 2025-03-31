@@ -271,10 +271,10 @@ class Button:
             self.name = 'Redeploy'
         elif self.name == 'Redeploy' and gameStatus == True:
             self.name = 'Deploy'
-        if self.name == 'Reset' and gameStatus == False:
-            self.name = 'Radar Scan'
-        elif self.name == 'Radar Scan' and gameStatus == True:
-            self.name = 'Reset'
+       #if self.name == 'Reset' and gameStatus == False:
+       #     self.name = 'Radar Scan'
+       #elif self.name == 'Radar Scan' and gameStatus == True:
+         #   self.name = 'Reset'
         if self.name == 'Randomize' and gameStatus == False:
             self.name = 'Quit'
         elif self.name == 'Quit' and gameStatus == True:
