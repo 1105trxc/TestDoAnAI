@@ -270,6 +270,10 @@ class Button:
         self.randomizeShipPositions(cFleet, cGameGrid)
         for ship in cFleet:
             ship.is_sunk = False
+        # Đặt lại lưới logic
+        global pGameLogic, cGameLogic
+        pGameLogic = createGameLogic(ROWS, COLS)  # Tạo lại lưới logic cho người chơi
+        cGameLogic = createGameLogic(ROWS, COLS)  # Tạo lại lưới logic cho máy
         updateGameLogic(cGameGrid, cFleet, cGameLogic)
         updateGameLogic(pGameGrid, pFleet, pGameLogic)
 
@@ -582,7 +586,7 @@ def createGameLogic(rows, cols):
         gamelogic.append(rowX)
     return gamelogic
 
-def updateGameLogic(coordGrid, shiplist, gamelogic):
+'''def updateGameLogic(coordGrid, shiplist, gamelogic):
     for i, rowX in enumerate(coordGrid):
         for j, colX in enumerate(rowX):
             if gamelogic[i][j] == 'T' or gamelogic[i][j] == 'X':
@@ -591,7 +595,16 @@ def updateGameLogic(coordGrid, shiplist, gamelogic):
                 gamelogic[i][j] = ' '
                 for ship in shiplist:
                     if pygame.rect.Rect(colX[0], colX[1], CELLSIZE, CELLSIZE).colliderect(ship.rect):
-                        gamelogic[i][j] = 'O'
+                        gamelogic[i][j] = 'O' '''
+
+def updateGameLogic(coordGrid, shiplist, gamelogic):
+    # Đặt lại toàn bộ lưới logic
+    for i, rowX in enumerate(coordGrid):
+        for j, colX in enumerate(rowX):
+            gamelogic[i][j] = ' '  # Đặt lại tất cả ô thành trống
+            for ship in shiplist:
+                if pygame.rect.Rect(colX[0], colX[1], CELLSIZE, CELLSIZE).colliderect(ship.rect):
+                    gamelogic[i][j] = 'O'  # Đặt ô thành 'O' nếu có tàu
 
 def showGridOnScreen(window, cellsize, playerGrid, computerGrid):
     gamegrids = [playerGrid, computerGrid]
